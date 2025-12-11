@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Daily Reflection App</title>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 20px;
+      color: #2d3436;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #6c5ce7;
+      margin-bottom: 20px;
+    }
+
+    .moods span {
+      font-size: 30px;
+      margin: 0 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .moods span:hover {
+      transform: scale(1.2);
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #dcdde1;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #6c5ce7;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 14px;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #4b3dd8;
+    }
+
+    .timeline {
+      margin-top: 30px;
+      padding: 15px;
+      background: #fafafa;
+      border-radius: 15px;
+    }
+
+    .entry {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border-left: 5px solid #6c5ce7;
+    }
+
+    .voice-btn {
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🌟 Daily Reflection</h2>
+
+    <h3>Select Mood</h3>
+    <div class="moods">
+      <span onclick="selectMood('😀')">😀</span>
+      <span onclick="selectMood('😐')">😐</span>
+      <span onclick="selectMood('😞')">😞</span>
+      <span onclick="selectMood('😡')">😡</span>
+      <span onclick="selectMood('😍')">😍</span>
+    </div>
+
+    <h3>Daily Summary</h3>
+    <textarea id="summary" rows="4" placeholder="Write your reflection..."></textarea>
+    <span class="voice-btn" onclick="startVoice()">🎤 Speak</span>
+
+    <h3>Productivity (0–10)</h3>
+    <input type="range" id="prod" min="0" max="10" value="5">
+
+    <h3>Goals for Tomorrow</h3>
+    <textarea id="goals" rows="3" placeholder="Write goals..."></textarea>
+
+    <button onclick="saveEntry()">Save Entry</button>
+
+    <div class="timeline">
+      <h3>📅 Recent Reflections</h3>
+      <div id="entries"></div>
+    </div>
+  </div>
+
+  <script>
+    let selectedMood = "";
+
+    function selectMood(mood) {
+      selectedMood = mood;
+      alert("Mood selected: " + mood);
+    }
+
+    // Voice recognition
+    function startVoice() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        document.getElementById("summary").value =
+          event.results[0][0].transcript;
+      };
+    }
+
+    function saveEntry() {
+      const summary = document.getElementById("summary").value;
+      const goals = document.getElementById("goals").value;
+      const prod = document.getElementById("prod").value;
+
+      if (!selectedMood || !summary.trim()) {
+        alert("Please select mood and add summary!");
+        return;
+      }
+
+      const entry = {
+        date: new Date().toLocaleString(),
+        mood: selectedMood,
+        summary,
+        goals,
+        prod
+      };
+
+      // Save in Local Storage
+      const all = JSON.parse(localStorage.getItem("reflections") || "[]");
+      all.unshift(entry);
+      localStorage.setItem("reflections", JSON.stringify(all));
+
+      loadEntries();
+    }
+
+    function loadEntries() {
+      const all = JSON.parse(localStorage.getItem("reflections") || "[]");
+      const box = document.getElementById("entries");
+
+      box.innerHTML = all
+        .map(e => `
+          <div class="entry">
+            <b>${e.date}</b> — ${e.mood}
+            <p><strong>Summary:</strong> ${e.summary}</p>
+            <p><strong>Goals:</strong> ${e.goals}</p>
+            <p><strong>Productivity:</strong> ${e.prod}/10</p>
+          </div>
+        `)
+        .join("");
+    }
+
+    loadEntries();
+  </script>
+
+</body>
+</html>
